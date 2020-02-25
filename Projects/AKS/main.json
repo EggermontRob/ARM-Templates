@@ -1,0 +1,104 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "environmentName": {
+            "type": "string",
+            "allowedValues": [
+                "dev",
+                "tst",
+                "qas",
+                "prd"
+            ],
+            "metadata": {
+                "description": "Name of the environment to deploy the resources to."
+            }
+        },
+        "artifactsLocation": {
+            "type": "string",
+            "metadata": {
+                "description": "URL to the Azure blob container where the ARM templates are stored. Must end with a '/'"
+            }
+        },
+        "artifactsSasToken": {
+            "type": "securestring",
+            "metadata": {
+                "description": "SAS token to access the artifacts storage account."
+            }
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "apiVersion": "2017-05-10",
+            "name": "vnet",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('artifactsLocation'), '/vnet.json', parameters('artifactsSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parametersLink": {
+                    "uri": "[concat(parameters('artifactsLocation'), '/', parameters('environmentName'), '/vnet.parameters.json', parameters('artifactsSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "elasticdbpool",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('artifactsLocation'), '/dbpool.json', parameters('artifactsSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parametersLink": {
+                    "uri": "[concat(parameters('artifactsLocation'), '/', parameters('environmentName'), '/dbpool.parameters.json', parameters('artifactsSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', 'keyvault')]"
+            ]
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "aks",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('artifactsLocation'), '/aks.json', parameters('artifactsSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parametersLink": {
+                    "uri": "[concat(parameters('artifactsLocation'), '/', parameters('environmentName'), '/aks.parameters.json', parameters('artifactsSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', 'keyvault')]",
+                "[concat('Microsoft.Resources/deployments/', 'vnet')]"
+            ]
+        },
+        {
+            "apiVersion": "2017-05-10",
+            "name": "keyvault",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('artifactsLocation'), '/keyvault.json', parameters('artifactsSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parametersLink": {
+                    "uri": "[concat(parameters('artifactsLocation'), '/', parameters('environmentName'), '/keyvault.parameters.json', parameters('artifactsSasToken'))]",
+                    "contentVersion": "1.0.0.0"
+                }
+            }
+        }
+    ]
+}

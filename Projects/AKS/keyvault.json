@@ -1,0 +1,42 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2014-04-01-preview/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "keyvaultName": {
+            "type": "string"
+        },
+        "keyvaultAccessPolicies": {
+            "type": "array",
+            "defaultValue": [],
+            "metadata": {
+                "description": "The access policies defined for this vault."
+            }
+        }
+    },
+    "variables": {
+        "keyvaultSKU": "premium",
+        "azureADTenantId": "[subscription().tenantId]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2016-10-01",
+            "name": "[parameters('keyvaultName')]",
+            "location": "[resourcegroup().location]",
+            "type": "Microsoft.KeyVault/vaults",
+            "tags": {
+                "description": "hr-backend"
+            },
+            "properties": {
+                "enabledForDeployment": true,
+                "enabledForTemplateDeployment": true,
+                "enabledForDiskEncryption": false,
+                "accessPolicies": "[parameters('keyvaultAccessPolicies')]",
+                "tenantId": "[variables('azureADTenantId')]",
+                "sku": {
+                    "name": "[variables('keyvaultSKU')]",
+                    "family": "A"
+                }
+            }
+        }
+    ]
+}

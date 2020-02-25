@@ -1,0 +1,66 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "namingconvention_prefix": {
+      "defaultvalue": "dlw",
+      "type": "string"
+    },
+    "S2SVPN_LocalOffice_name": {
+      "type": "string"
+    },
+    "S2SVPN_localGatewayIpAddress": {
+      "type": "string"
+    },
+    "S2SVPN_localNetworkAddressSpace": {
+      "type": "string"
+    },
+    "S2SVPN_ConnectionKey": {
+      "type": "string"
+    },
+    "virtualNetworks_gateway_name": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "apiVersion": "2016-03-30",
+    "virtualNetworks_Gateway_IdleTimeOutInMinutes": 4,
+    "S2SVPN_localGatewayName": "[concat(parameters('namingconvention_prefix'),'-localgateway','-',parameters('S2SVPN_LocalOffice_name'))]",
+    "S2SVPN_ConnectionName": "[concat(parameters('namingconvention_prefix'),'-vpnconnection-to-',parameters('S2SVPN_LocalOffice_name'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-06-15",
+      "location": "[variables('location')]",
+      "name": "[variables('S2SVPN_localGatewayName')]",
+      "properties": {
+        "gatewayIpAddress": "[parameters('S2SVPN_localGatewayIpAddress')]",
+        "localNetworkAddressSpace": {
+          "addressPrefixes": "[parameters('S2SVPN_localNetworkAddressSpace')]"
+        }
+      },
+      "type": "Microsoft.Network/localNetworkGateways"
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "dependsOn": [
+        "[concat('Microsoft.Network/localNetworkGateways/', variables('S2SVPN_localGatewayName'))]"
+      ],
+      "location": "[variables('location')]",
+      "name": "[variables('S2SVPN_ConnectionName')]",
+      "properties": {
+        "virtualNetworkGateway1": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworkGateways', parameters('virtualNetworks_gateway_name'))]"
+        },
+        "localNetworkGateway2": {
+          "id": "[resourceId('Microsoft.Network/localNetworkGateways', variables('S2SVPN_localGatewayName'))]"
+        },
+        "connectionType": "IPsec",
+        "routingWeight": 10,
+        "sharedKey": "[parameters('S2SVPN_ConnectionKey')]"
+      },
+      "type": "Microsoft.Network/connections"
+    }
+  ]
+}

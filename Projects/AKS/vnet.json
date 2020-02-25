@@ -1,0 +1,201 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "outputs": {
+    "virtualNetworks_name": {
+      "type": "string",
+      "value": "[variables('virtualNetworks_Name')]"
+    },
+    "frontendsubnet_name": {
+      "type": "string",
+      "value": "[variables('virtualNetworks_subnet_frontend_name')]"
+    },
+    "backendsubnet_name": {
+      "type": "string",
+      "value": "[variables('virtualNetworks_subnet_backend_name')]"
+    },
+    "managementsubnet_name": {
+      "type": "string",
+      "value": "[variables('virtualNetworks_subnet_management_name')]"
+    }
+  },
+  "parameters": {
+    "namingconvention_prefix": {
+      "defaultvalue": "dlw",
+      "type": "string"
+    },
+    "virtualNetworks_IP_Address_Space": {
+      "defaultvalue": "10.251.0.0/26",
+      "type": "string"
+    },
+    "virtualNetworks_subnet_frontend_IP_Address_Space": {
+      "defaultvalue": "10.251.0.0/28",
+      "type": "string"
+    },
+    "virtualNetworks_subnet_backend_IP_Address_Space": {
+      "defaultvalue": "10.251.0.16/28",
+      "type": "string"
+    },
+    "virtualNetworks_subnet_management_IP_Address_Space": {
+      "defaultvalue": "10.251.0.32/28",
+      "type": "string"
+    },
+    "virtualNetworks_subnet_gateway_IP_Address_Space": {
+      "defaultvalue": "10.251.0.48/28",
+      "type": "string",
+      "metadata": {
+        "description": "Subnet size must be /28."
+      }
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "comments": "Non customized network security group for backend subnet.",
+      "dependsOn": [],
+      "location": "[variables('location')]",
+      "name": "[variables('networkSecurityGroups_nsg_backend_name')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "allow-rdp",
+            "properties": {
+              "priority": 1000,
+              "sourceAddressPrefix": "*",
+              "protocol": "Tcp",
+              "destinationPortRange": "3389",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          }
+        ]
+      },
+      "resources": [],
+      "type": "Microsoft.Network/networkSecurityGroups"
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "comments": "Non customized network security group for frontend subnet.",
+      "dependsOn": [],
+      "location": "[variables('location')]",
+      "name": "[variables('networkSecurityGroups_nsg_frontend_name')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "allow-rdp",
+            "properties": {
+              "priority": 1000,
+              "sourceAddressPrefix": "*",
+              "protocol": "Tcp",
+              "destinationPortRange": "3389",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          }
+        ]
+      },
+      "resources": [],
+      "type": "Microsoft.Network/networkSecurityGroups"
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "comments": "Non customized network security group for the management subnet.",
+      "dependsOn": [],
+      "location": "[variables('location')]",
+      "name": "[variables('networkSecurityGroups_nsg_management_name')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "allow-rdp",
+            "properties": {
+              "priority": 1000,
+              "sourceAddressPrefix": "*",
+              "protocol": "Tcp",
+              "destinationPortRange": "3389",
+              "access": "Allow",
+              "direction": "Inbound",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*"
+            }
+          }
+        ]
+      },
+      "resources": [],
+      "type": "Microsoft.Network/networkSecurityGroups"
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "comments": "Virtual Network definition.",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroups_nsg_frontend_name'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroups_nsg_backend_name'))]",
+        "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroups_nsg_management_name'))]"
+      ],
+      "location": "[variables('location')]",
+      "name": "[variables('virtualNetworks_Name')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('virtualNetworks_IP_Address_Space')]"
+          ]
+        },
+        "subnets": [
+          {
+            "comments": "Frontend subnet (DMZ).",
+            "name": "[variables('virtualNetworks_subnet_frontend_name')]",
+            "properties": {
+              "addressPrefix": "[parameters('virtualNetworks_subnet_frontend_IP_Address_Space')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroups_nsg_frontend_name'))]"
+              }
+            }
+          },
+          {
+            "comments": "Backend subnet (DMZ).",
+            "name": "[variables('virtualNetworks_subnet_backend_name')]",
+            "properties": {
+              "addressPrefix": "[parameters('virtualNetworks_subnet_backend_IP_Address_Space')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroups_nsg_backend_name'))]"
+              }
+            }
+          },
+          {
+            "comments": "Management subnet (DMZ).",
+            "name": "[variables('virtualNetworks_subnet_management_name')]",
+            "properties": {
+              "addressPrefix": "[parameters('virtualNetworks_subnet_management_IP_Address_Space')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('networkSecurityGroups_nsg_management_name'))]"
+              }
+            }
+          },
+          {
+            "comments": "Gateway subnet (DMZ). DO NOT CHANGE NAME OR SIZE. Must be /28 for ExpressRoute and /29 for VPN Gateways",
+            "name": "GatewaySubnet",
+            "properties": {
+              "addressPrefix": "[parameters('virtualNetworks_subnet_gateway_IP_Address_Space')]"
+            }
+          }
+        ]
+      },
+      "resources": [],
+      "type": "Microsoft.Network/virtualNetworks"
+    }
+  ],
+  "variables": {
+    "location": "[resourceGroup().location]",
+    "apiVersion": "2016-03-30",
+    "networkSecurityGroups_nsg_backend_name": "[concat(variables('virtualNetworks_subnet_backend_name'),'-nsg')]",
+    "networkSecurityGroups_nsg_frontend_name": "[concat(variables('virtualNetworks_subnet_frontend_name'),'-nsg')]",
+    "networkSecurityGroups_nsg_management_name": "[concat(variables('virtualNetworks_subnet_management_name'),'-nsg')]",
+    "virtualNetworks_subnet_frontend_name": "[concat(parameters('namingconvention_prefix'),'-frontend')]",
+    "virtualNetworks_subnet_backend_name": "[concat(parameters('namingconvention_prefix'),'-backend')]",
+    "virtualNetworks_subnet_management_name": "[concat(parameters('namingconvention_prefix'),'-management')]",
+    "virtualNetworks_Name": "[concat(parameters('namingconvention_prefix'),'-vnet')]"
+  }
+}

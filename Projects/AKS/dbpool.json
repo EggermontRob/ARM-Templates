@@ -1,0 +1,137 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "administratorLogin": {
+            "type": "string",
+            "metadata": {
+                "description": "The SQL Server administrator login"
+            }
+        },
+        "administratorLoginPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The SQL Server administrator login password."
+            }
+        },
+        "serverName": {
+            "type": "string",
+            "metadata": {
+                "description": "The SQL Server name."
+            }
+        },
+        "elasticPoolName": {
+            "type": "string",
+            "metadata": {
+                "description": "The Elastic Pool name."
+            }
+        },
+        "edition": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Basic",
+                "Standard",
+                "Premium"
+            ],
+            "metadata": {
+                "description": "The Elastic Pool edition."
+            }
+        },
+        "poolDtu": {
+            "type": "int",
+            "metadata": {
+                "description": "The Elastic Pool DTU."
+            }
+        },
+        "databaseTier": {
+            "type": "string",
+            "metadata": {
+                "description": "SQL Database performance tier within the pricing tier."
+            }
+        },
+        "databaseEdition": {
+            "type": "string",
+            "metadata": {
+                "description": "SQL Database pricing tier."
+            }
+        },
+        "MobCandatabaseName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the SQL database."
+            }
+        }
+    },
+    "variables": {
+        "databaseDtuMin": "0",
+        "databaseDtuMax": "[parameters('poolDtu')]",
+        "databaseCollation": "SQL_Latin1_General_CP1_CI_AS"
+    },
+    "resources": [
+        {
+			"apiVersion": "2014-04-01-preview",
+			"location": "[resourceGroup().location]",
+            "name": "[parameters('serverName')]",
+            "tags": {
+                "description": "hr-backend"
+            },
+			"properties": {
+				"administratorLogin": "[parameters('administratorLogin')]",
+				"administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+				"version": "12.0"
+			},
+            "type": "Microsoft.Sql/servers",
+            "resources": [
+                {
+                    "name": "[parameters('MobCandatabaseName')]",
+                    "type": "databases",
+                    "apiVersion": "2015-01-01",
+                    "location": "[resourceGroup().location]",
+                    "tags": {
+                        "displayName": "Database",
+                        "description": "mobile-candidate"
+                    },
+                    "properties": {
+                        "collation": "[variables('databaseCollation')]",
+                        "elasticPoolName": "[parameters('elasticPoolName')]"
+                    },
+                    "dependsOn": [
+                        "[parameters('serverName')]"
+                    ]
+                }
+            ]
+		},
+		{
+			"apiVersion": "2014-04-01",
+			"dependsOn": [
+				"[concat('Microsoft.Sql/servers/', parameters('serverName'))]"
+            ],
+            "tags": {
+                "description": "hr-backend"
+            },
+			"location": "[resourceGroup().location]",
+			"name": "[concat(parameters('serverName'), '/', parameters('elasticPoolName'))]",
+			"properties": {
+				"edition": "[parameters('edition')]",
+				"dtu": "[parameters('poolDtu')]",
+				"databaseDtuMin": "[variables('databaseDtuMin')]",
+				"databaseDtuMax": "[variables('databaseDtuMax')]"
+			},
+			"type": "Microsoft.Sql/servers/elasticPools"
+		},
+		{
+			"apiVersion": "2014-04-01-preview",
+			"dependsOn": [
+				"[concat('Microsoft.Sql/servers/', parameters('serverName'))]"
+            ],
+			"location": "[resourceGroup().location]",
+			"name": "[concat(parameters('serverName'), '/', 'AllowAllWindowsAzureIps')]",
+			"properties": {
+				"endIpAddress": "0.0.0.0",
+				"startIpAddress": "0.0.0.0"
+			},
+			"type": "Microsoft.Sql/servers/firewallrules"
+        }
+    ]
+}

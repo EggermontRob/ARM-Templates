@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+
+    // Naming Convention Prefix
+    "namingconvention_prefix": {
+      "value": "dlw"
+    },
+
+    // Site to Site VPN to Delaware
+    "virtualNetworks_gateway_name": {
+      "value": "mygateway"
+    },
+    "S2SVPN_LocalOffice_name": {
+      "value": "myoffice"
+    },
+    "S2SVPN_localGatewayIpAddress": {
+      "value": "0.0.0.0"
+    },
+    "S2SVPN_localNetworkAddressSpace": {
+      "value": "10.0.0.0/24"
+    },
+    "S2SVPN_ConnectionKey": {
+      "value": "sdflqjezmroisjfmlksdnhvmfielzuf"
+    }
+  }
+}

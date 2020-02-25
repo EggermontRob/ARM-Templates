@@ -1,0 +1,196 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Managed Cluster resource."
+            }
+        },
+        "dnsPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
+            }
+        },
+        "agentCount": {
+            "type": "int",
+            "defaultValue": 3,
+            "metadata": {
+                "description": "The number of agent nodes for the cluster."
+            },
+            "minValue": 1,
+            "maxValue": 50
+        },
+        "agentVMSize": {
+            "type": "string",
+            "defaultValue": "Standard_D2_v2",
+            "metadata": {
+                "description": "The size of the Virtual Machine."
+            }
+        },
+        "servicePrincipalClientId": {
+            "metadata": {
+                "description": "Client ID (used by cloudprovider)"
+            },
+            "type": "securestring"
+        },
+        "servicePrincipalClientSecret": {
+            "metadata": {
+                "description": "The Service Principal Client Secret."
+            },
+            "type": "securestring"
+        },
+        "enableHttpApplicationRouting": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "boolean flag to turn on and off of http application routing"
+            }
+        },
+        "dnsServiceIP": {
+            "type": "string",
+            "metadata": {
+                "description": "Containers DNS server IP address."
+            }
+        },
+        "workspaceName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the OMS workspace."
+            }
+        }
+    },
+    "variables": {
+        "osType": "Linux",
+        "osDiskSizeGB": 0,
+        "omsSku": "PerGB2018",
+        "enableOmsAgent": true,
+        "kubernetesVersion": "1.7.7",
+        "networkPlugin": "Azure",
+        "dockerBridgeCidr": "172.17.0.13/16",
+        "vnet": "dlw-vnet",
+        "subnet": "dlw-frontend"
+    },
+    "resources": [
+        {
+            "apiVersion": "2018-03-31",
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', 'WorkspaceDeployment')]"
+            ],
+            "type": "Microsoft.ContainerService/managedClusters",
+            "location": "[resourcegroup().location]",
+            "name": "[parameters('resourceName')]",
+            "properties": {
+                "kubernetesVersion": "[variables('kubernetesVersion')]",
+                "enableRBAC": false,
+                "dnsPrefix": "[parameters('dnsPrefix')]",
+                "addonProfiles": {
+                    "httpApplicationRouting": {
+                        "enabled": "[parameters('enableHttpApplicationRouting')]"
+                    },
+                    "omsagent": {
+                        "enabled": true,
+                        "config": {
+                          "logAnalyticsWorkspaceResourceID": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+                        }
+                      }
+                },
+                "agentPoolProfiles": [
+                    {
+                        "name": "agentpool",
+                        "osDiskSizeGB": "[variables('osDiskSizeGB')]",
+                        "count": "[parameters('agentCount')]",
+                        "vmSize": "[parameters('agentVMSize')]",
+                        "osType": "[variables('osType')]",
+                        "storageProfile": "ManagedDisks",
+                        "vnetSubnetID": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnet'), variables('subnet'))]"
+                    }
+                ],
+                "servicePrincipalProfile": {
+                    "ClientId": "[parameters('servicePrincipalClientId')]",
+                    "Secret": "[parameters('servicePrincipalClientSecret')]"
+                },
+                "networkProfile": {
+                    "networkPlugin": "azure",
+                    "serviceCidr": "10.250.0.0/26",
+                    "dnsServiceIP": "10.250.0.4",
+                    "dockerBridgeCidr": "[variables('dockerBridgeCidr')]"
+                }
+            },
+            "tags": {}
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "SolutionDeployment",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[resourcegroup().name]",
+            "subscriptionId": "13c3cc54-b676-4845-9974-a4e7f6c8b175",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2015-11-01-preview",
+                            "type": "Microsoft.OperationsManagement/solutions",
+                            "location": "[resourcegroup().location]",
+                            "name": "ContainerInsights",
+                            "properties": {
+                                "workspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
+                            },
+                            "plan": {
+                                "name": "ContainerInsightsPlan",
+                                "product": "[concat('OMSGallery/', 'ContainerInsights')]",
+                                "promotionCode": "",
+                                "publisher": "Microsoft"
+                            }
+                        }
+                    ]
+                }
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Resources/deployments/', 'WorkspaceDeployment')]"
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "WorkspaceDeployment",
+            "apiVersion": "2017-05-10",
+            "resourceGroup": "[resourcegroup().name]",
+            "subscriptionId": "13c3cc54-b676-4845-9974-a4e7f6c8b175",
+            "properties": {
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "parameters": {},
+                    "variables": {},
+                    "resources": [
+                        {
+                            "apiVersion": "2015-11-01-preview",
+                            "type": "Microsoft.OperationalInsights/workspaces",
+                            "location": "[resourcegroup().location]",
+                            "name": "[parameters('workspaceName')]",
+                            "properties": {
+                                "sku": {
+                                    "name": "[variables('omsSku')]"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "controlPlaneFQDN": {
+            "type": "string",
+            "value": "[reference(concat('Microsoft.ContainerService/managedClusters/', parameters('resourceName'))).fqdn]"
+        }
+    }
+}

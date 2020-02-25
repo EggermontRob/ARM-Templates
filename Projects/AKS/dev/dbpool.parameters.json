@@ -1,0 +1,33 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "administratorLogin": {
+			"value": "aks-db"
+		},
+		"administratorLoginPassword": {
+            "value": "del@w@re123"
+		},
+		"serverName": {
+			"value": "sqlsrvforaks"
+		},
+		"elasticPoolName": {
+			"value": "sqlsrv-epool"
+		},
+		"edition": {
+			"value": "Standard"
+		},
+		"poolDtu": {
+			"value": 50
+		},
+		"MobCandatabaseName": {
+            "value": "aks-db"
+		},
+        "databaseEdition": {
+            "value": "Standard"
+        },
+        "databaseTier": {
+            "value": "S0"
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "name": {
+            "value": "RobStageWordpressTest"
+        },
+        "hostingPlanName": {
+            "value": "Wordpress"
+        },
+        "hostingEnvironment": {
+            "value": ""
+        },
+        "location": {
+            "value": "Central US"
+        },
+        "sku": {
+            "value": "Free"
+        },
+        "skuCode": {
+            "value": "F1"
+        },
+        "workerSize": {
+            "value": "0"
+        },
+        "serverFarmResourceGroup": {
+            "value": "learn-0b69ced5-25de-41d8-96c1-cb03c7d5d793"
+        },
+        "subscriptionId": {
+            "value": "0cb1fffd-fe14-44ea-a686-6eff61f986fc"
+        }
+    }
+}

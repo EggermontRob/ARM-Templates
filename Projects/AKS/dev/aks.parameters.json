@@ -1,0 +1,33 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceName": {
+            "value": "dlwaks"
+        },
+        "dnsPrefix": {
+            "value": "dlwaksprefix"
+        },
+        "agentCount": {
+            "value": 1
+        },
+        "agentVMSize": {
+            "value": "Standard_D2_v2"
+        },
+        "servicePrincipalClientId": {
+            "value": "0355fb95-7fa4-43a6-a470-90fc7d4dd088"
+        },
+        "servicePrincipalClientSecret": {
+            "value": "eHgEOVFyJK7Yp6eE7BMiZW+YufbQOAw9GdvY/v7QiP8="
+        },
+        "enableHttpApplicationRouting": {
+            "value": true
+        },
+        "dnsServiceIP": {
+            "value": "10.251.0.4"
+        },
+        "workspaceName": {
+            "value": "dlwaksmonitor"
+        }
+    }
+}

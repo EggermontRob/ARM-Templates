@@ -1,0 +1,25 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "virtualNetworks_IP_Address_Space": {
+      "value": "10.251.0.0/24"
+    },
+
+    "virtualNetworks_subnet_frontend_IP_Address_Space": {
+      "value": "10.251.0.0/26"
+    },
+
+    "virtualNetworks_subnet_backend_IP_Address_Space": {
+      "value": "10.251.0.64/26"
+    },
+
+    "virtualNetworks_subnet_management_IP_Address_Space": {
+      "value": "10.251.0.128/26"
+    },
+
+    "virtualNetworks_subnet_gateway_IP_Address_Space": {
+      "value": "10.251.0.192/28"
+    }
+  }
+}
