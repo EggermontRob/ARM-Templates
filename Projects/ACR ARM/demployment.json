@@ -1,8 +1,8 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "registries_delawareTestACR_name": {
+        "registryName": {
             "defaultValue": "delawareTestACR",
             "type": "String"
         }
@@ -12,7 +12,7 @@
         {
             "type": "Microsoft.ContainerRegistry/registries",
             "apiVersion": "2019-05-01",
-            "name": "[parameters('registries_delawareTestACR_name')]",
+            "name": "[parameters('registryName')]",
             "location": "westeurope",
             "tags": {
                 "description": "development"
