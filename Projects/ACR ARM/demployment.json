@@ -9,6 +9,12 @@
         "registryLocation":{
             "defaultValue":"westeurope",
             "type":"String"
+        },"adminUserEnabled": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "The value that indicates whether the admin user is enabled."
+            }
         }
     },
     "variables": {},
@@ -26,7 +32,7 @@
                 "tier": "Basic"
             },
             "properties": {
-                "adminUserEnabled": false,
+                "adminUserEnabled": "[parameters('adminUserEnabled')]",
                 "policies": {
                     "quarantinePolicy": {
                         "status": "disabled"
